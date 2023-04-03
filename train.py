@@ -1,8 +1,4 @@
-#! /usr/bin/python
-# -*- coding: utf8 -*-
 import os
-
-import numpy as np
 import argparse
 import tensorflow as tf
 
@@ -12,7 +8,6 @@ from deepsleep.sleep_stage import (NUM_CLASSES,
                                    SAMPLING_RATE)
 
 
-# Dùng kiểu này vì TensorFlow 2.x đã loại bỏ module tf.app.flags 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_dir', type=str, default='data')
 parser.add_argument('--train_dir', type=str, default='train')
@@ -25,29 +20,6 @@ parser.add_argument('--finetune_epochs', type=int, default=200)
 parser.add_argument('--resume', type=bool, default=False)
 FLAGS, unparsed = parser.parse_known_args()
 
-# FLAGS = tf.app.flags.FLAGS
-# tf.app.flags.DEFINE_string('data_dir', 'data',
-#                            """Directory where to load training data.""")
-# tf.app.flags.DEFINE_string('train_dir', 'train',
-#                            """Directory where to load training data.""")
-# tf.app.flags.DEFINE_string('val_dir', 'val',
-#                            """Directory where to load val data.""")                                                      
-# tf.app.flags.DEFINE_string('output_dir', 'output',
-#                            """Directory where to save trained models """
-#                            """and outputs.""")
-# tf.app.flags.DEFINE_integer('n_folds', 20,
-#                            """Number of cross-validation folds.""")
-# tf.app.flags.DEFINE_integer('fold_idx', 0,
-#                             """Index of cross-validation fold to train.""")
-# tf.app.flags.DEFINE_integer('pretrain_epochs', 100,
-#                             """Number of epochs for pretraining DeepFeatureNet.""")
-# tf.app.flags.DEFINE_integer('finetune_epochs', 200,
-#                             """Number of epochs for fine-tuning DeepSleepNet.""")
-# tf.app.flags.DEFINE_boolean('resume', False,
-#                             """Whether to resume the training process.""")
-
-
-print('================= FLAGSSSS ', FLAGS)
 
 def pretrain(n_epochs):
     trainer = DeepFeatureNetTrainer(
@@ -97,22 +69,17 @@ def finetune(model_path, n_epochs):
     return finetuned_model_path
 
 
-def main(argv=None):
+def main():
     # Output dir
     output_dir = os.path.join(FLAGS.output_dir, "fold{}".format(FLAGS.fold_idx))
     if not FLAGS.resume:
-        if tf.gfile.Exists(output_dir):
-            tf.gfile.DeleteRecursively(output_dir)
-        tf.gfile.MakeDirs(output_dir)
+        if os.path.exists(output_dir):
+            os.system(f"rm -r {output_dir}")
+        os.makedirs(output_dir)
 
     pretrained_model_path = pretrain(
         n_epochs=FLAGS.pretrain_epochs
     )
     finetuned_model_path = finetune(
         model_path=pretrained_model_path, 
-        n_epochs=FLAGS.finetune_epochs
-    )
-
-
-if __name__ == "__main__":
-    tf.compat.v1.app.run()
+        n_epochs=FLAGS
